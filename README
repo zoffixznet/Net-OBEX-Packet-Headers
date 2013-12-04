@@ -1,0 +1,186 @@
+NAME
+    Net::OBEX::Packet::Headers - construct and parse OBEX packet headers
+
+SYNOPSIS
+        use strict;
+        use warnings;
+
+        use Net::OBEX::Packet::Headers;
+
+        # this would be the data from the socket.
+        my $header = pack 'H*', '4a0013f9ec7bc4953c11d2984e525400dc9e09cb00000001';
+
+        my $head = Net::OBEX::Packet::Headers->new;
+
+        my $parse_ref = $head->parse( $header );
+
+        my @headers = keys %$parse_ref;
+
+        print "Your data containts " . @headers . " headers which are: \n",
+            map { "[$_]\n" } @headers;
+
+        my $type_header = $head->make(
+            'target' => pack 'H*', 'F9EC7BC4953C11D2984E525400DC9E09'
+        );
+
+        printf "Type header for OBEX FTP (F9EC7BC4953C11D2984E525400DC9E09) "
+                . "in hex is: \n%s\n",
+                    unpack 'H*', $type_header;
+
+        print "Let's see what the parse says... \n";
+
+        $head->parse( $type_header );
+
+        print map { "$_ => " . uc unpack( 'H*', $parse_ref->{$_}) . "\n" }
+                keys %{ $head->headers_parsed };
+
+DESCRIPTION
+    WARNING!!! This module is still in alpha stage. Use it for test purposes
+    only as interface might change in the future.
+
+    The module provides means to create OBEX protocol packet headers as well
+    as means to parse the data containing headers.
+
+CONSTRUCTOR
+  new
+        my $head = Net::OBEX::Packet::Headers->new;
+
+        my $head = Net::OBEX::Packet::Headers->new( $raw_headers );
+
+    Constructs and returns a Net::OBEX::Packet::Headers obect. Takes one
+    *optional* argument which is raw data containing headers you would want
+    to parse.
+
+METHODS
+  parse
+        my $parse_ref = $head->parse;
+
+        my $parse_ref = $head->parse( $raw_headers );
+
+    Instructs the object to parse raw data containing OBEX headers. Returns
+    a hashref, keys of which will be the names of OBEX headers found in the
+    data and value will be the values of each of those headers.
+
+    Takes one optional argument which is a scalar containing raw OBEX
+    headers, if this argument is not specified will parse whatever data
+    you've specified in the constructor. The possible header names in the
+    return hashref are the same as the names of the headers to "make()"
+    method "header name" argument. Note: parsing of custom, i.e. "user
+    defined" headers is not implemented yet.
+
+  make
+        my $type_header = $head->make(
+            'target' => pack 'H*', 'F9EC7BC4953C11D2984E525400DC9E09'
+        );
+
+        my $name_header = $head->make( 'name' => 'x-obex/folder-listing' );
+
+    Constructs an OBEX header suitable to go down the wire. Takes two
+    arguments the name of the header and its value. If you wish to specify a
+    header with no value use an empty string as a value, e.g.:
+
+        my $set_path_root_name_header = $head->make( 'name' => '' );
+
+    Possible header names are as follows:
+
+    count     The "COUNT" header.
+
+    length    The "LENGTH" header.
+
+    time      The "TIME" header in its *byte sequence* format.
+
+    timeb     The "TIME" header in its 4-byte format.
+
+    connection_id
+              The "Connection ID" header.
+
+    type      The "TYPE" header.
+
+    target    The "TARGET" header.
+
+    http      The "HTTP" header.
+
+    who       The "WHO" header.
+
+    app_params
+              The "Application Parameters" header.
+
+    auth_challenge
+              The "Authentication Challenge" header.
+
+    auth_response
+              The "Authentication Response" header.
+
+    body      The "BODY" header.
+
+    end_of_body
+              The "End Of Body" header.
+
+    object_class
+              The "Object Class" header.
+
+    name      The "NAME" header.
+
+    description
+              Te "Description" header.
+
+    *Note:* If you want to create custom headers take a look at either
+    Net::OBEX::Packet::Headers::Unicode,
+    Net::OBEX::Packet::Headers::ByteSeq, Net::OBEX::Packet::Headers::Byte4
+    or Net::OBEX::Packet::Headers::Byte1 modules depending on which type of
+    header you want to create.
+
+  headers_raw
+        my $raw = $head->headers_raw;
+
+    Takes no arguments, returns the raw headers data you've supplied to the
+    constructor or last "parse()" call.
+
+  headers_parsed
+        my $parse_ref = $head->headers_parsed;
+
+    Must be called after the call to "parse()". Takes no arguments, returns
+    the hashref of parsed headers, same as the return value of "parse()".
+    See "parse()" method for more information.
+
+AUTHOR
+    Zoffix Znet, "<zoffix at cpan.org>" (<http://zoffix.com>,
+    <http://haslayout.net>)
+
+BUGS
+    Please report any bugs or feature requests to
+    "bug-net-obex-packet-headers at rt.cpan.org", or through the web
+    interface at
+    <http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Net-OBEX-Packet-Headers>
+    . I will be notified, and then you'll automatically be notified of
+    progress on your bug as I make changes.
+
+SUPPORT
+    You can find documentation for this module with the perldoc command.
+
+        perldoc Net::OBEX::Packet::Headers
+
+    You can also look for information at:
+
+    *   RT: CPAN's request tracker
+
+        <http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-OBEX-Packet-Headers>
+
+    *   AnnoCPAN: Annotated CPAN documentation
+
+        <http://annocpan.org/dist/Net-OBEX-Packet-Headers>
+
+    *   CPAN Ratings
+
+        <http://cpanratings.perl.org/d/Net-OBEX-Packet-Headers>
+
+    *   Search CPAN
+
+        <http://search.cpan.org/dist/Net-OBEX-Packet-Headers>
+
+COPYRIGHT & LICENSE
+    Copyright 2008 Zoffix Znet, all rights reserved.
+
+    This program is free software; you can redistribute it and/or modify it
+    under the same terms as Perl itself.
+
